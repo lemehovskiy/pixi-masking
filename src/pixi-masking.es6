@@ -24,101 +24,61 @@
 
             self.$element = $(element);
 
-            //extend by data options
-            self.data_options = self.$element.data('pixi-masking');
-            self.settings = $.extend(true, self.settings, self.data_options);
-
-
-            self.canvas = null;
-            self.context = null;
-            self.FPS = 30;
 
             self.init();
         }
 
         init() {
+            var renderer = PIXI.autoDetectRenderer(800, 600, { antialias: true });
+            this.$element[0].appendChild(renderer.view);
 
-            let self = this;
+// create the root of the scene graph
+            var stage = new PIXI.Container();
 
-            window.requestAnimFrame = (function () {
-                return window.requestAnimationFrame ||
-                    window.webkitRequestAnimationFrame ||
-                    window.mozRequestAnimationFrame ||
-                    window.oRequestAnimationFrame ||
-                    window.msRequestAnimationFrame ||
+            stage.interactive = true;
 
-                    function (callback) {
-                        window.setTimeout(callback, 1000 / FPS);
-                    };
-            })();
+            var container = new PIXI.Container();
+            container.position.x = renderer.width / 2;
+            container.position.y = renderer.height / 2;
 
-            let body = document.querySelector('body');
+// add a bunch of sprites
 
-            self.canvas = document.createElement('canvas');
-
-            self.$element.append(self.canvas);
+            var light1 = PIXI.Sprite.fromImage('imgs/sample-img-4.jpg');
+            light1.anchor.x = 0.5;
+            light1.anchor.y = 0.5;
+            container.addChild(light1);
 
 
-            self.canvas.style.position = 'absolute';
-            self.canvas.style.top = 0;
-            self.canvas.style.bottom = 0;
-            self.canvas.style.left = 0;
-            self.canvas.style.right = 0;
-            self.canvas.style.zIndex = 2;
-            self.canvas.style.cursor = 'pointer';
+            stage.addChild(container);
 
-            self.context = self.canvas.getContext('2d');
+// let's create a moving shape
+            var thing = new PIXI.Graphics();
+            stage.addChild(thing);
+            thing.position.x = 0;
+            thing.position.y = 0;
 
-            self.canvas.width = self.$element.outerWidth();
-            self.canvas.height = self.$element.outerWidth();
+            container.mask = thing;
 
-            window.onresize = self.on_resize;
+            var count = 0;
 
+            let height = 600;
 
-            self.context.rect(20,20,150,100);
-            self.context.stroke();
+            animate();
 
-            self.loop();
+            function animate()
+            {
+                thing.clear();
 
-        }
+                thing.beginFill();
+                thing.moveTo(0, 0);
+                thing.lineTo(50, 0);
+                thing.lineTo(50, height);
+                thing.lineTo(0, height);
+                thing.lineTo(0, 0);
 
-        on_resize() {
-
-        }
-
-        update() {
-            let self = this;
-
-
-        }
-
-        clear() {
-            let self = this;
-
-            self.context.clearRect(0, 0, innerWidth, innerHeight);
-        }
-
-
-        render() {
-
-            let self = this;
-
-            let canvas_center_x = self.canvas.width / 2;
-            let canvas_center_y = self.canvas.height / 2;
-
-        }
-
-        loop() {
-
-            let self = this;
-
-            self.clear();
-            self.update();
-            self.render();
-
-            window.requestAnimFrame(function(){
-                self.loop();
-            });
+                renderer.render(stage);
+                requestAnimationFrame(animate);
+            }
 
         }
     }
