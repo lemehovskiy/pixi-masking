@@ -191,8 +191,14 @@ section {
   padding: 100% 0 0;
 }
 
+.pixi-masking-demo {
+  min-height: 500px;
+  max-width: 800px;
+  margin: auto;
+}
+
 .section-intro {
-  padding: 400px 0 400px;
+  padding: 400px 0;
 }
 
 

@@ -16,129 +16,157 @@
             let self = this;
 
             //extend by function call
-            self.settings = $.extend(true, {
+            this.settings = $.extend(true, {
+                background: null,
                 bars: [
                     {
                         width: 20,
-                        from: 40,
-                        to: 80
+                        from: 20,
+                        to: 60,
+                        duration: 1.8
                     },
                     {
                         width: 20,
-                        from: 55,
-                        to: 90
+                        from: 20,
+                        to: 80,
+                        duration: 2.2
                     },
                     {
                         width: 20,
-                        from: 65,
-                        to: 100
+                        from: 20,
+                        to: 100,
+                        duration: 3
                     },
                     {
                         width: 20,
-                        from: 55,
-                        to: 85
+                        from: 20,
+                        to: 75,
+                        duration: 2.2
                     },
                     {
                         width: 20,
-                        from: 40,
-                        to: 75
+                        from: 20,
+                        to: 65,
+                        duration: 1.6
                     }
                 ]
 
             }, options);
 
-            self.$element = $(element);
+            this.$element = $(element);
+
+            //extend by data options
+            this.data_options = self.$element.data('pixi-masking');
+            this.settings = $.extend(true, self.settings, self.data_options);
+
+            if (this.settings.background === null) {
+                throw new Error("No image defined");
+            }
 
             this.state = {
-                canvas: {
-                    width: 800,
-                    height: 800
-                },
                 progress: 0,
                 bars: [],
-                isInit: false
+                isInit: false,
+                backgroundImage: {},
+                backgroundImageSizeOriginal: {
+                    width: 0,
+                    height: 0
+                }
             }
+
 
             self.init();
         }
 
         init() {
             let self = this;
+
+            this.renderer = PIXI.autoDetectRenderer(self.$element.outerWidth(), self.$element.outerHeight(), {
+                antialias: true,
+                transparent: true
+            });
+
             this.initBarConfig();
 
-            var renderer = PIXI.autoDetectRenderer(this.state.canvas.width, this.state.canvas.height, {antialias: true, transparent: true});
-            this.$element[0].appendChild(renderer.view);
+            this.$element[0].appendChild(this.renderer.view);
 
-// create the root of the scene graph
             var stage = new PIXI.Container();
 
-            stage.interactive = true;
-
             var container = new PIXI.Container();
-            container.position.x = renderer.width / 2;
-            container.position.y = renderer.height / 2;
 
-// add a bunch of sprites
+            self.state.backgroundImage = PIXI.Sprite.fromImage(self.settings.background);
+            self.state.backgroundImage.texture.baseTexture.on('loaded', function () {
+                self.state.backgroundImageSizeOriginal.width = self.state.backgroundImage.width;
+                self.state.backgroundImageSizeOriginal.height = self.state.backgroundImage.height;
 
-            var light1 = PIXI.Sprite.fromImage('imgs/sample-img-4.jpg');
-            light1.anchor.x = 0.5;
-            light1.anchor.y = 0.5;
-            container.addChild(light1);
+                self.onResize();
+            });
+
+
+            container.addChild(self.state.backgroundImage);
 
 
             stage.addChild(container);
 
-// let's create a moving shape
 
-            var thing = new PIXI.Graphics();
-            stage.addChild(thing);
-            thing.position.x = 0;
-            thing.position.y = 0;
+            var mask = new PIXI.Graphics();
+            stage.addChild(mask);
+            mask.position.x = 0;
+            mask.position.y = 0;
 
             container.mask = thing;
 
 
             animate();
 
-
             function animate() {
-                thing.clear();
+                mask.clear();
                 self.state.bars.forEach((bar, index) => {
-                    thing.beginFill();
-                    thing.moveTo(bar.left, 0);
-                    thing.lineTo(bar.left + bar.width, 0);
-                    thing.lineTo(bar.left + bar.width, bar.height);
-                    thing.lineTo(bar.left, bar.height);
-                    thing.endFill();
+                    mask.beginFill();
+                    mask.moveTo(bar.left, 0);
+                    mask.lineTo(bar.left + bar.width, 0);
+                    mask.lineTo(bar.left + bar.width, bar.height);
+                    mask.lineTo(bar.left, bar.height);
+                    mask.endFill();
                 })
 
 
-                renderer.render(stage);
+                self.renderer.render(stage);
                 requestAnimationFrame(animate);
             }
+
+
+            $(window).on('resize', self.onResize.bind(this))
 
         }
 
         initBarConfig() {
-            let self = this,
-                left = 0;
-
-            self.settings.bars.forEach((bar, index) => {
-                self.state.bars.push({
-                    width: 0,
-                    height: 0,
-                    left: left
-                })
-
-                left += self.state.canvas.width / 100 * self.settings.bars[index].width;
-            })
+            let self = this;
 
             self.updateBarConfig();
+            self.handleUpdateProgress();
 
             self.state.isInit = true;
         }
 
         updateBarConfig() {
+            let self = this,
+                left = 0;
+
+            self.state.bars = [];
+
+            self.settings.bars.forEach((bar, index) => {
+                self.state.bars.push({
+                    width: self.renderer.width / 100 * bar.width,
+                    height: self.renderer.height / 100 * bar.from,
+                    left: left
+                })
+
+                left += self.renderer.width / 100 * self.settings.bars[index].width;
+            })
+        }
+
+        handleUpdateProgress() {
             let self = this;
 
             if (!this.state.isInit) return;
@@ -148,15 +176,39 @@
                     toHeight = bar.to,
                     renderProgress = fromHeight + (toHeight - fromHeight) / 100 * self.state.progress;
 
-                self.state.bars[index].width = self.state.canvas.width / 100 * bar.width;
-                self.state.bars[index].height = self.state.canvas.height / 100 * renderProgress;
+                TweenLite.to(self.state.bars[index], bar.duration, {height: self.renderer.height / 100 * renderProgress});
 
             })
         }
 
+
         setProgress(progress) {
             this.state.progress = progress;
-            this.updateBarConfig();
+            this.handleUpdateProgress();
+        }
+
+        onResize() {
+            let self = this;
+
+            let elementWidth = self.$element.outerWidth(),
+                elementHeight = self.$element.outerHeight();
+
+            self.renderer.resize(elementWidth, elementHeight);
+
+            self.updateBarConfig();
+
+            self.state.backgroundImage.anchor.set(0.5);
+            self.state.backgroundImage.x = self.renderer.width / 2;
+            self.state.backgroundImage.y = self.renderer.height / 2;
+
+
+            if (elementWidth / elementHeight > this.state.backgroundImage.width / this.state.backgroundImage.height) {
+                self.state.backgroundImage.width = elementWidth;
+                self.state.backgroundImage.height = elementWidth / self.state.backgroundImageSizeOriginal.width * self.state.backgroundImageSizeOriginal.height;
+            } else {
+                self.state.backgroundImage.width = elementHeight / self.state.backgroundImageSizeOriginal.height * self.state.backgroundImageSizeOriginal.width;
+                self.state.backgroundImage.height = elementHeight;
+            }
         }
     }
 
