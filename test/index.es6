@@ -45,7 +45,8 @@ $(document).ready(function () {
     });
 
 
-    $('.pixi-masking-demo').on('progress.scroller', function (element, progress) {
+    $('.pixi-masking-demo').on('visible.scroller progress.scroller', function (element, progress) {
+        console.log(progress);
         $(this).pixiMasking('setProgress', progress);
 
     });

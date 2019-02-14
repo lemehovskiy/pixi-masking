@@ -28327,7 +28327,8 @@ $(document).ready(function () {
         }]
     });
 
-    $('.pixi-masking-demo').on('progress.scroller', function (element, progress) {
+    $('.pixi-masking-demo').on('visible.scroller progress.scroller', function (element, progress) {
+        console.log(progress);
         $(this).pixiMasking('setProgress', progress);
     });
 
@@ -55197,65 +55198,63 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             value: function init() {
                 var self = this;
 
-                this.renderer = PIXI.autoDetectRenderer(self.$element.outerWidth(), self.$element.outerHeight(), {
+                self.renderer = PIXI.autoDetectRenderer(self.$element.outerWidth(), self.$element.outerHeight(), {
                     antialias: true,
                     transparent: true
                 });
 
-                this.initBarConfig();
+                self.initBarConfig();
+                self.updateBarConfig();
 
-                this.$element[0].appendChild(this.renderer.view);
+                self.$element[0].appendChild(this.renderer.view);
 
-                var stage = new PIXI.Container();
+                self.stage = new PIXI.Container();
+                self.container = new PIXI.Container();
 
-                var container = new PIXI.Container();
-
-                self.state.backgroundImage = PIXI.Sprite.fromImage(self.settings.background);
-                self.state.backgroundImage.texture.baseTexture.on('loaded', function () {
-                    self.state.backgroundImageSizeOriginal.width = self.state.backgroundImage.width;
-                    self.state.backgroundImageSizeOriginal.height = self.state.backgroundImage.height;
+                self.backgroundImage = PIXI.Sprite.fromImage(self.settings.background);
+                self.backgroundImage.texture.baseTexture.on('loaded', function () {
+                    self.state.backgroundImageSizeOriginal.width = self.backgroundImage.width;
+                    self.state.backgroundImageSizeOriginal.height = self.backgroundImage.height;
 
                     self.onResize();
                 });
 
-                container.addChild(self.state.backgroundImage);
+                self.container.addChild(self.backgroundImage);
+                self.stage.addChild(self.container);
+                self.mask = new PIXI.Graphics();
+                self.stage.addChild(self.mask);
+                self.mask.position.x = 0;
+                self.mask.position.y = 0;
+                self.container.mask = self.mask;
 
-                stage.addChild(container);
-
-                var mask = new PIXI.Graphics();
-                stage.addChild(mask);
-                mask.position.x = 0;
-                mask.position.y = 0;
-
-                container.mask = thing;
-
-                animate();
-
-                function animate() {
-                    mask.clear();
-                    self.state.bars.forEach(function (bar, index) {
-                        mask.beginFill();
-                        mask.moveTo(bar.left, 0);
-                        mask.lineTo(bar.left + bar.width, 0);
-                        mask.lineTo(bar.left + bar.width, bar.height);
-                        mask.lineTo(bar.left, bar.height);
-                        mask.endFill();
-                    });
-
-                    self.renderer.render(stage);
-                    requestAnimationFrame(animate);
-                }
+                self.animate();
 
                 $(window).on('resize', self.onResize.bind(this));
+            }
+        }, {
+            key: 'animate',
+            value: function animate() {
+                var self = this;
+
+                self.mask.clear();
+                self.state.bars.forEach(function (bar, index) {
+                    self.mask.beginFill();
+                    self.mask.moveTo(bar.left, 0);
+                    self.mask.lineTo(bar.left + bar.width, 0);
+                    self.mask.lineTo(bar.left + bar.width, bar.height);
+                    self.mask.lineTo(bar.left, bar.height);
+                    self.mask.endFill();
+                });
+
+                self.renderer.render(self.stage);
+                requestAnimationFrame(this.animate.bind(this));
             }
         }, {
             key: 'initBarConfig',
             value: function initBarConfig() {
                 var self = this;
-
                 self.updateBarConfig();
                 self.handleUpdateProgress();
-
                 self.state.isInit = true;
             }
         }, {
@@ -55294,6 +55293,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }, {
             key: 'setProgress',
             value: function setProgress(progress) {
+                console.log('setProgress');
                 this.state.progress = progress;
                 this.handleUpdateProgress();
             }
@@ -55309,16 +55309,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                 self.updateBarConfig();
 
-                self.state.backgroundImage.anchor.set(0.5);
-                self.state.backgroundImage.x = self.renderer.width / 2;
-                self.state.backgroundImage.y = self.renderer.height / 2;
+                self.backgroundImage.anchor.set(0.5);
+                self.backgroundImage.x = self.renderer.width / 2;
+                self.backgroundImage.y = self.renderer.height / 2;
 
-                if (elementWidth / elementHeight > this.state.backgroundImage.width / this.state.backgroundImage.height) {
-                    self.state.backgroundImage.width = elementWidth;
-                    self.state.backgroundImage.height = elementWidth / self.state.backgroundImageSizeOriginal.width * self.state.backgroundImageSizeOriginal.height;
+                if (elementWidth / elementHeight > this.backgroundImage.width / this.backgroundImage.height) {
+                    self.backgroundImage.width = elementWidth;
+                    self.backgroundImage.height = elementWidth / self.state.backgroundImageSizeOriginal.width * self.state.backgroundImageSizeOriginal.height;
                 } else {
-                    self.state.backgroundImage.width = elementHeight / self.state.backgroundImageSizeOriginal.height * self.state.backgroundImageSizeOriginal.width;
-                    self.state.backgroundImage.height = elementHeight;
+                    self.backgroundImage.width = elementHeight / self.state.backgroundImageSizeOriginal.height * self.state.backgroundImageSizeOriginal.width;
+                    self.backgroundImage.height = elementHeight;
                 }
             }
         }]);
