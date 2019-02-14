@@ -55109,15 +55109,40 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
             //extend by function call
             self.settings = $.extend(true, {
-
-                test_property: false
+                bars: [{
+                    width: 20,
+                    from: 40,
+                    to: 80
+                }, {
+                    width: 20,
+                    from: 55,
+                    to: 90
+                }, {
+                    width: 20,
+                    from: 65,
+                    to: 100
+                }, {
+                    width: 20,
+                    from: 55,
+                    to: 85
+                }, {
+                    width: 20,
+                    from: 40,
+                    to: 75
+                }]
 
             }, options);
 
             self.$element = $(element);
 
             this.state = {
-                progress: 0
+                canvas: {
+                    width: 800,
+                    height: 800
+                },
+                progress: 0,
+                bars: [],
+                isInit: false
             };
 
             self.init();
@@ -55127,8 +55152,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             key: 'init',
             value: function init() {
                 var self = this;
+                this.initBarConfig();
 
-                var renderer = PIXI.autoDetectRenderer(800, 600, { antialias: true });
+                var renderer = PIXI.autoDetectRenderer(this.state.canvas.width, this.state.canvas.height, { antialias: true, transparent: true });
                 this.$element[0].appendChild(renderer.view);
 
                 // create the root of the scene graph
@@ -55150,6 +55176,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 stage.addChild(container);
 
                 // let's create a moving shape
+
                 var thing = new PIXI.Graphics();
                 stage.addChild(thing);
                 thing.position.x = 0;
@@ -55157,35 +55184,64 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                 container.mask = thing;
 
-                var height = 600;
-                var width = 50;
-
-                var fromHeight = 30;
-                var toHeight = 90;
-
                 animate();
 
                 function animate() {
-                    var renderProgress = fromHeight + (toHeight - fromHeight) / 100 * self.state.progress;
-                    var renderHeight = height / 100 * renderProgress;
-
                     thing.clear();
-
-                    thing.beginFill();
-                    thing.moveTo(0, 0);
-                    thing.lineTo(width, 0);
-                    thing.lineTo(width, renderHeight);
-                    thing.lineTo(0, renderHeight);
-                    thing.lineTo(0, 0);
+                    self.state.bars.forEach(function (bar, index) {
+                        thing.beginFill();
+                        thing.moveTo(bar.left, 0);
+                        thing.lineTo(bar.left + bar.width, 0);
+                        thing.lineTo(bar.left + bar.width, bar.height);
+                        thing.lineTo(bar.left, bar.height);
+                        thing.endFill();
+                    });
 
                     renderer.render(stage);
                     requestAnimationFrame(animate);
                 }
             }
         }, {
+            key: 'initBarConfig',
+            value: function initBarConfig() {
+                var self = this,
+                    left = 0;
+
+                self.settings.bars.forEach(function (bar, index) {
+                    self.state.bars.push({
+                        width: 0,
+                        height: 0,
+                        left: left
+                    });
+
+                    left += self.state.canvas.width / 100 * self.settings.bars[index].width;
+                });
+
+                self.updateBarConfig();
+
+                self.state.isInit = true;
+            }
+        }, {
+            key: 'updateBarConfig',
+            value: function updateBarConfig() {
+                var self = this;
+
+                if (!this.state.isInit) return;
+
+                self.settings.bars.forEach(function (bar, index) {
+                    var fromHeight = bar.from,
+                        toHeight = bar.to,
+                        renderProgress = fromHeight + (toHeight - fromHeight) / 100 * self.state.progress;
+
+                    self.state.bars[index].width = self.state.canvas.width / 100 * bar.width;
+                    self.state.bars[index].height = self.state.canvas.height / 100 * renderProgress;
+                });
+            }
+        }, {
             key: 'setProgress',
             value: function setProgress(progress) {
                 this.state.progress = progress;
+                this.updateBarConfig();
             }
         }]);
 
