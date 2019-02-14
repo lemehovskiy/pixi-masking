@@ -82,7 +82,7 @@ return /******/ (function(modules) { // webpackBootstrap
  Version: 1.0.0
  Author: lemehovskiy
  Website: http://lemehovskiy.github.io
- Repo: https://github.com/lemehovskiy/pixi-masking
+ Repo: https://github.com/lemehovskiy/scroller
  */
 
 
@@ -94,98 +94,128 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 (function ($) {
-    var PixiMasking = function () {
-        function PixiMasking(element, options) {
-            _classCallCheck(this, PixiMasking);
+    var Scroller = function () {
+        function Scroller(element, options) {
+            _classCallCheck(this, Scroller);
 
             var self = this;
 
             //extend by function call
-            self.settings = $.extend(true, {
+            this.settings = $.extend(true, {}, options);
+            this.$element = $(element);
 
-                test_property: false
-
-            }, options);
-
-            self.$element = $(element);
+            //extend by data options
+            this.data_options = self.$element.data('scroller');
+            this.settings = $.extend(true, self.settings, self.data_options);
 
             this.state = {
-                progress: 0
+                isVisible: false,
+                window: {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                },
+                viewport: {
+                    top: 0,
+                    bottom: 0
+                },
+                sectionOffset: {
+                    top: 0,
+                    bottom: 0
+                },
+                progress: {
+                    px: 0,
+                    percent: 0,
+                    length: 0
+                },
+                sectionHeight: 0
             };
 
-            self.init();
+            this.init();
         }
 
-        _createClass(PixiMasking, [{
+        _createClass(Scroller, [{
             key: 'init',
             value: function init() {
                 var self = this;
 
-                var renderer = PIXI.autoDetectRenderer(800, 600, { antialias: true });
-                this.$element[0].appendChild(renderer.view);
+                this.updateViewport();
+                self.onResize();
+                self.onResizeScroll();
 
-                // create the root of the scene graph
-                var stage = new PIXI.Container();
+                $(window).on('scroll', function () {
+                    self.onScroll();
+                });
 
-                stage.interactive = true;
+                $(window).on('resize', function () {
+                    self.onResize();
+                });
+                $(window).on('scroll resize', function () {
+                    self.onResizeScroll();
+                });
+            }
+        }, {
+            key: 'updateWindowSize',
+            value: function updateWindowSize() {
+                this.state.window.width = window.innerWidth;
+                this.state.window.height = window.innerHeight;
+            }
+        }, {
+            key: 'updateViewport',
+            value: function updateViewport() {
+                this.state.viewport.top = $(window).scrollTop();
+                this.state.viewport.bottom = this.state.viewport.top + this.state.window.height;
+            }
+        }, {
+            key: 'onScroll',
+            value: function onScroll() {
+                this.updateViewport();
+            }
+        }, {
+            key: 'onResize',
+            value: function onResize() {
+                this.updateWindowSize();
+                this.state.sectionHeight = this.$element.outerHeight();
+                this.state.sectionOffset.top = this.$element.offset().top;
+                this.state.sectionOffset.bottom = this.state.sectionOffset.top + this.state.sectionHeight;
+                this.state.progress.length = this.state.sectionHeight + this.state.window.height;
+            }
+        }, {
+            key: 'onResizeScroll',
+            value: function onResizeScroll() {
+                var isVisible = this.state.viewport.bottom > this.state.sectionOffset.top && this.state.viewport.top < this.state.sectionOffset.bottom;
 
-                var container = new PIXI.Container();
-                container.position.x = renderer.width / 2;
-                container.position.y = renderer.height / 2;
+                if (isVisible) {
+                    this.state.progress.px = this.state.viewport.bottom - this.state.sectionOffset.top;
+                    this.state.progress.percent = (this.state.progress.px / this.state.progress.length * 100).toFixed(2);
+                    this.$element.trigger('progress.scroller', this.state.progress.percent);
+                }
 
-                // add a bunch of sprites
-
-                var light1 = PIXI.Sprite.fromImage('imgs/sample-img-4.jpg');
-                light1.anchor.x = 0.5;
-                light1.anchor.y = 0.5;
-                container.addChild(light1);
-
-                stage.addChild(container);
-
-                // let's create a moving shape
-                var thing = new PIXI.Graphics();
-                stage.addChild(thing);
-                thing.position.x = 0;
-                thing.position.y = 0;
-
-                container.mask = thing;
-
-                var height = 600;
-                var width = 50;
-
-                var fromHeight = 30;
-                var toHeight = 90;
-
-                animate();
-
-                function animate() {
-                    var renderProgress = fromHeight + (toHeight - fromHeight) / 100 * self.state.progress;
-                    var renderHeight = height / 100 * renderProgress;
-
-                    thing.clear();
-
-                    thing.beginFill();
-                    thing.moveTo(0, 0);
-                    thing.lineTo(width, 0);
-                    thing.lineTo(width, renderHeight);
-                    thing.lineTo(0, renderHeight);
-                    thing.lineTo(0, 0);
-
-                    renderer.render(stage);
-                    requestAnimationFrame(animate);
+                if (isVisible && !this.state.isVisible) {
+                    this.onVisible();
+                } else if (!isVisible && this.state.isVisible) {
+                    this.onHidden();
                 }
             }
         }, {
-            key: 'setProgress',
-            value: function setProgress(progress) {
-                this.state.progress = progress;
+            key: 'onVisible',
+            value: function onVisible() {
+                this.state.isVisible = true;
+                this.$element.trigger('visible.scroller', this.state.progress.percent);
+                this.$element.addClass('active');
+            }
+        }, {
+            key: 'onHidden',
+            value: function onHidden() {
+                this.state.isVisible = false;
+                this.$element.trigger('hidden.scroller', this.state.progress.percent);
+                this.$element.removeClass('active');
             }
         }]);
 
-        return PixiMasking;
+        return Scroller;
     }();
 
-    $.fn.pixiMasking = function () {
+    $.fn.scroller = function () {
         var $this = this,
             opt = arguments[0],
             args = Array.prototype.slice.call(arguments, 1),
@@ -193,7 +223,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             i = void 0,
             ret = void 0;
         for (i = 0; i < length; i++) {
-            if ((typeof opt === 'undefined' ? 'undefined' : _typeof(opt)) == 'object' || typeof opt == 'undefined') $this[i].pixi_masking = new PixiMasking($this[i], opt);else ret = $this[i].pixi_masking[opt].apply($this[i].pixi_masking, args);
+            if ((typeof opt === 'undefined' ? 'undefined' : _typeof(opt)) == 'object' || typeof opt == 'undefined') $this[i].scroller = new Scroller($this[i], opt);else ret = $this[i].scroller[opt].apply($this[i].scroller, args);
             if (typeof ret != 'undefined') return ret;
         }
         return $this;

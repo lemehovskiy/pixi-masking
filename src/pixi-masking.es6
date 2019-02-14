@@ -24,12 +24,18 @@
 
             self.$element = $(element);
 
+            this.state = {
+                progress: 0
+            }
+
 
             self.init();
         }
 
         init() {
-            var renderer = PIXI.autoDetectRenderer(800, 600, { antialias: true });
+            let self = this;
+
+            var renderer = PIXI.autoDetectRenderer(800, 600, { antialias: true});
             this.$element[0].appendChild(renderer.view);
 
 // create the root of the scene graph
@@ -59,27 +65,37 @@
 
             container.mask = thing;
 
-            var count = 0;
-
             let height = 600;
+            let width = 50;
+
+            let fromHeight = 30;
+            let toHeight= 90;
+
 
             animate();
 
             function animate()
             {
+                let renderProgress = fromHeight + (toHeight - fromHeight) / 100 * self.state.progress;
+                let renderHeight = height / 100 * renderProgress;
+
                 thing.clear();
 
                 thing.beginFill();
                 thing.moveTo(0, 0);
-                thing.lineTo(50, 0);
-                thing.lineTo(50, height);
-                thing.lineTo(0, height);
+                thing.lineTo(width, 0);
+                thing.lineTo(width, renderHeight);
+                thing.lineTo(0, renderHeight);
                 thing.lineTo(0, 0);
 
                 renderer.render(stage);
                 requestAnimationFrame(animate);
             }
 
+        }
+
+        setProgress(progress){
+            this.state.progress = progress;
         }
     }
 
