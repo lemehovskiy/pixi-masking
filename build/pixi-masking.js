@@ -104,30 +104,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             this.settings = $.extend(true, {
                 background: null,
                 bars: [{
-                    width: 20,
+                    width: 50,
                     from: 20,
                     to: 60,
                     duration: 1.8
                 }, {
-                    width: 20,
+                    width: 50,
                     from: 20,
                     to: 80,
                     duration: 2.2
-                }, {
-                    width: 20,
-                    from: 20,
-                    to: 100,
-                    duration: 3
-                }, {
-                    width: 20,
-                    from: 20,
-                    to: 75,
-                    duration: 2.2
-                }, {
-                    width: 20,
-                    from: 20,
-                    to: 65,
-                    duration: 1.6
                 }]
 
             }, options);
@@ -146,7 +131,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 progress: 0,
                 bars: [],
                 isInit: false,
-                backgroundImage: {},
                 backgroundImageSizeOriginal: {
                     width: 0,
                     height: 0
@@ -165,23 +149,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     antialias: true,
                     transparent: true
                 });
-
                 self.initBarConfig();
                 self.updateBarConfig();
-
                 self.$element[0].appendChild(this.renderer.view);
-
                 self.stage = new PIXI.Container();
                 self.container = new PIXI.Container();
-
                 self.backgroundImage = PIXI.Sprite.fromImage(self.settings.background);
                 self.backgroundImage.texture.baseTexture.on('loaded', function () {
                     self.state.backgroundImageSizeOriginal.width = self.backgroundImage.width;
                     self.state.backgroundImageSizeOriginal.height = self.backgroundImage.height;
-
                     self.onResize();
                 });
-
                 self.container.addChild(self.backgroundImage);
                 self.stage.addChild(self.container);
                 self.mask = new PIXI.Graphics();
@@ -191,6 +169,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 self.container.mask = self.mask;
 
                 self.animate();
+                self.state.animationStarted = false;
+                self.handleUpdateProgress();
+
+                console.log(this.state);
 
                 $(window).on('resize', self.onResize.bind(this));
             }
@@ -215,19 +197,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }, {
             key: 'initBarConfig',
             value: function initBarConfig() {
-                var self = this;
-                self.updateBarConfig();
-                self.handleUpdateProgress();
-                self.state.isInit = true;
-            }
-        }, {
-            key: 'updateBarConfig',
-            value: function updateBarConfig() {
                 var self = this,
                     left = 0;
-
-                self.state.bars = [];
-
                 self.settings.bars.forEach(function (bar, index) {
                     self.state.bars.push({
                         width: self.renderer.width / 100 * bar.width,
@@ -237,14 +208,30 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     left += self.renderer.width / 100 * self.settings.bars[index].width;
                 });
+                self.state.isInit = true;
+            }
+        }, {
+            key: 'updateBarConfig',
+            value: function updateBarConfig() {
+                var self = this,
+                    left = 0;
+
+                self.settings.bars.forEach(function (bar, index) {
+                    self.state.bars[index].width = self.renderer.width / 100 * bar.width;
+                    self.state.bars[index].height = self.renderer.height / 100 * bar.from;
+                    self.state.bars[index].left = left;
+
+                    left += self.renderer.width / 100 * self.settings.bars[index].width;
+                });
             }
         }, {
             key: 'handleUpdateProgress',
             value: function handleUpdateProgress() {
-                var self = this;
 
+                console.log('handleUpdateProgress');
                 if (!this.state.isInit) return;
 
+                var self = this;
                 self.settings.bars.forEach(function (bar, index) {
                     var fromHeight = bar.from,
                         toHeight = bar.to,
@@ -256,7 +243,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }, {
             key: 'setProgress',
             value: function setProgress(progress) {
-                console.log('setProgress');
                 this.state.progress = progress;
                 this.handleUpdateProgress();
             }

@@ -8,11 +8,8 @@
 'use strict';
 
 (function ($) {
-
     class PixiMasking {
-
         constructor(element, options) {
-
             let self = this;
 
             //extend by function call
@@ -20,34 +17,16 @@
                 background: null,
                 bars: [
                     {
-                        width: 20,
+                        width: 50,
                         from: 20,
                         to: 60,
                         duration: 1.8
                     },
                     {
-                        width: 20,
+                        width: 50,
                         from: 20,
                         to: 80,
                         duration: 2.2
-                    },
-                    {
-                        width: 20,
-                        from: 20,
-                        to: 100,
-                        duration: 3
-                    },
-                    {
-                        width: 20,
-                        from: 20,
-                        to: 75,
-                        duration: 2.2
-                    },
-                    {
-                        width: 20,
-                        from: 20,
-                        to: 65,
-                        duration: 1.6
                     }
                 ]
 
@@ -67,13 +46,11 @@
                 progress: 0,
                 bars: [],
                 isInit: false,
-                backgroundImage: {},
                 backgroundImageSizeOriginal: {
                     width: 0,
                     height: 0
                 }
             }
-
 
             self.init();
         }
@@ -85,23 +62,17 @@
                 antialias: true,
                 transparent: true
             });
-
             self.initBarConfig();
             self.updateBarConfig();
-
             self.$element[0].appendChild(this.renderer.view);
-
             self.stage = new PIXI.Container();
             self.container = new PIXI.Container();
-
             self.backgroundImage = PIXI.Sprite.fromImage(self.settings.background);
             self.backgroundImage.texture.baseTexture.on('loaded', function () {
                 self.state.backgroundImageSizeOriginal.width = self.backgroundImage.width;
                 self.state.backgroundImageSizeOriginal.height = self.backgroundImage.height;
-
                 self.onResize();
             });
-
             self.container.addChild(self.backgroundImage);
             self.stage.addChild(self.container);
             self.mask = new PIXI.Graphics();
@@ -111,11 +82,15 @@
             self.container.mask = self.mask;
 
             self.animate();
+            self.state.animationStarted = false;
+            self.handleUpdateProgress();
+
+            console.log(this.state);
 
             $(window).on('resize', self.onResize.bind(this))
         }
 
-        animate(){
+        animate() {
             let self = this;
 
             self.mask.clear();
@@ -128,24 +103,13 @@
                 self.mask.endFill();
             })
 
-
             self.renderer.render(self.stage);
             requestAnimationFrame(this.animate.bind(this));
         }
 
         initBarConfig() {
-            let self = this;
-            self.updateBarConfig();
-            self.handleUpdateProgress();
-            self.state.isInit = true;
-        }
-
-        updateBarConfig() {
             let self = this,
                 left = 0;
-
-            self.state.bars = [];
-
             self.settings.bars.forEach((bar, index) => {
                 self.state.bars.push({
                     width: self.renderer.width / 100 * bar.width,
@@ -155,26 +119,38 @@
 
                 left += self.renderer.width / 100 * self.settings.bars[index].width;
             })
+            self.state.isInit = true;
+        }
+
+        updateBarConfig() {
+            let self = this,
+                left = 0;
+
+            self.settings.bars.forEach((bar, index) => {
+                self.state.bars[index].width = self.renderer.width / 100 * bar.width;
+                self.state.bars[index].height = self.renderer.height / 100 * bar.from;
+                self.state.bars[index].left = left;
+
+                left += self.renderer.width / 100 * self.settings.bars[index].width;
+            })
         }
 
         handleUpdateProgress() {
-            let self = this;
 
+            console.log('handleUpdateProgress');
             if (!this.state.isInit) return;
 
+            let self = this;
             self.settings.bars.forEach(function (bar, index) {
                 let fromHeight = bar.from,
                     toHeight = bar.to,
                     renderProgress = fromHeight + (toHeight - fromHeight) / 100 * self.state.progress;
 
                 TweenLite.to(self.state.bars[index], bar.duration, {height: self.renderer.height / 100 * renderProgress});
-
             })
         }
 
-
         setProgress(progress) {
-            console.log('setProgress');
             this.state.progress = progress;
             this.handleUpdateProgress();
         }
@@ -203,7 +179,6 @@
             }
         }
     }
-
 
     $.fn.pixiMasking = function () {
         let $this = this,

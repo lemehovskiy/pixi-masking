@@ -8,7 +8,7 @@ import {TweenLite} from 'gsap';
 
 require('./scroller');
 
-$(document).ready(function () {
+$(window).on('load', function(){
     $('.pixi-masking-demo').pixiMasking({
         bars: [
             {
@@ -52,5 +52,4 @@ $(document).ready(function () {
     });
 
     $('.pixi-masking-demo').scroller();
-
-});
+})

@@ -28297,7 +28297,7 @@ __webpack_require__(299);
 
 __webpack_require__(304);
 
-$(document).ready(function () {
+$(window).on('load', function () {
     $('.pixi-masking-demo').pixiMasking({
         bars: [{
             width: 20,
@@ -55141,30 +55141,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             this.settings = $.extend(true, {
                 background: null,
                 bars: [{
-                    width: 20,
+                    width: 50,
                     from: 20,
                     to: 60,
                     duration: 1.8
                 }, {
-                    width: 20,
+                    width: 50,
                     from: 20,
                     to: 80,
                     duration: 2.2
-                }, {
-                    width: 20,
-                    from: 20,
-                    to: 100,
-                    duration: 3
-                }, {
-                    width: 20,
-                    from: 20,
-                    to: 75,
-                    duration: 2.2
-                }, {
-                    width: 20,
-                    from: 20,
-                    to: 65,
-                    duration: 1.6
                 }]
 
             }, options);
@@ -55183,7 +55168,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 progress: 0,
                 bars: [],
                 isInit: false,
-                backgroundImage: {},
                 backgroundImageSizeOriginal: {
                     width: 0,
                     height: 0
@@ -55202,23 +55186,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     antialias: true,
                     transparent: true
                 });
-
                 self.initBarConfig();
                 self.updateBarConfig();
-
                 self.$element[0].appendChild(this.renderer.view);
-
                 self.stage = new PIXI.Container();
                 self.container = new PIXI.Container();
-
                 self.backgroundImage = PIXI.Sprite.fromImage(self.settings.background);
                 self.backgroundImage.texture.baseTexture.on('loaded', function () {
                     self.state.backgroundImageSizeOriginal.width = self.backgroundImage.width;
                     self.state.backgroundImageSizeOriginal.height = self.backgroundImage.height;
-
                     self.onResize();
                 });
-
                 self.container.addChild(self.backgroundImage);
                 self.stage.addChild(self.container);
                 self.mask = new PIXI.Graphics();
@@ -55228,6 +55206,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 self.container.mask = self.mask;
 
                 self.animate();
+                self.state.animationStarted = false;
+                self.handleUpdateProgress();
+
+                console.log(this.state);
 
                 $(window).on('resize', self.onResize.bind(this));
             }
@@ -55252,19 +55234,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }, {
             key: 'initBarConfig',
             value: function initBarConfig() {
-                var self = this;
-                self.updateBarConfig();
-                self.handleUpdateProgress();
-                self.state.isInit = true;
-            }
-        }, {
-            key: 'updateBarConfig',
-            value: function updateBarConfig() {
                 var self = this,
                     left = 0;
-
-                self.state.bars = [];
-
                 self.settings.bars.forEach(function (bar, index) {
                     self.state.bars.push({
                         width: self.renderer.width / 100 * bar.width,
@@ -55274,14 +55245,30 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     left += self.renderer.width / 100 * self.settings.bars[index].width;
                 });
+                self.state.isInit = true;
+            }
+        }, {
+            key: 'updateBarConfig',
+            value: function updateBarConfig() {
+                var self = this,
+                    left = 0;
+
+                self.settings.bars.forEach(function (bar, index) {
+                    self.state.bars[index].width = self.renderer.width / 100 * bar.width;
+                    self.state.bars[index].height = self.renderer.height / 100 * bar.from;
+                    self.state.bars[index].left = left;
+
+                    left += self.renderer.width / 100 * self.settings.bars[index].width;
+                });
             }
         }, {
             key: 'handleUpdateProgress',
             value: function handleUpdateProgress() {
-                var self = this;
 
+                console.log('handleUpdateProgress');
                 if (!this.state.isInit) return;
 
+                var self = this;
                 self.settings.bars.forEach(function (bar, index) {
                     var fromHeight = bar.from,
                         toHeight = bar.to,
@@ -55293,7 +55280,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }, {
             key: 'setProgress',
             value: function setProgress(progress) {
-                console.log('setProgress');
                 this.state.progress = progress;
                 this.handleUpdateProgress();
             }
@@ -55354,239 +55340,239 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 /***/ (function(module, exports, __webpack_require__) {
 
 (function webpackUniversalModuleDefinition(root, factory) {
-	if(true)
-		module.exports = factory();
-	else if(typeof define === 'function' && define.amd)
-		define([], factory);
-	else {
-		var a = factory();
-		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
-	}
+    if(true)
+        module.exports = factory();
+    else if(typeof define === 'function' && define.amd)
+        define([], factory);
+    else {
+        var a = factory();
+        for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
+    }
 })(typeof self !== 'undefined' ? self : this, function() {
-return /******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-/******/
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
-/******/ 			return installedModules[moduleId].exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			i: moduleId,
-/******/ 			l: false,
-/******/ 			exports: {}
-/******/ 		};
-/******/
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
-/******/ 		// Flag the module as loaded
-/******/ 		module.l = true;
-/******/
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/
-/******/
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-/******/
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-/******/
-/******/ 	// define getter function for harmony exports
-/******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
-/******/ 		}
-/******/ 	};
-/******/
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__webpack_require__.n = function(module) {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
-/******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
-/******/ 		return getter;
-/******/ 	};
-/******/
-/******/ 	// Object.prototype.hasOwnProperty.call
-/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-/******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
-/******/ })
-/************************************************************************/
-/******/ ([
-/* 0 */
-/***/ (function(module, exports, __webpack_require__) {
+    return /******/ (function(modules) { // webpackBootstrap
+        /******/ 	// The module cache
+        /******/ 	var installedModules = {};
+        /******/
+        /******/ 	// The require function
+        /******/ 	function __webpack_require__(moduleId) {
+            /******/
+            /******/ 		// Check if module is in cache
+            /******/ 		if(installedModules[moduleId]) {
+                /******/ 			return installedModules[moduleId].exports;
+                /******/ 		}
+            /******/ 		// Create a new module (and put it into the cache)
+            /******/ 		var module = installedModules[moduleId] = {
+                /******/ 			i: moduleId,
+                /******/ 			l: false,
+                /******/ 			exports: {}
+                /******/ 		};
+            /******/
+            /******/ 		// Execute the module function
+            /******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+            /******/
+            /******/ 		// Flag the module as loaded
+            /******/ 		module.l = true;
+            /******/
+            /******/ 		// Return the exports of the module
+            /******/ 		return module.exports;
+            /******/ 	}
+        /******/
+        /******/
+        /******/ 	// expose the modules object (__webpack_modules__)
+        /******/ 	__webpack_require__.m = modules;
+        /******/
+        /******/ 	// expose the module cache
+        /******/ 	__webpack_require__.c = installedModules;
+        /******/
+        /******/ 	// define getter function for harmony exports
+        /******/ 	__webpack_require__.d = function(exports, name, getter) {
+            /******/ 		if(!__webpack_require__.o(exports, name)) {
+                /******/ 			Object.defineProperty(exports, name, {
+                    /******/ 				configurable: false,
+                    /******/ 				enumerable: true,
+                    /******/ 				get: getter
+                    /******/ 			});
+                /******/ 		}
+            /******/ 	};
+        /******/
+        /******/ 	// getDefaultExport function for compatibility with non-harmony modules
+        /******/ 	__webpack_require__.n = function(module) {
+            /******/ 		var getter = module && module.__esModule ?
+                /******/ 			function getDefault() { return module['default']; } :
+                /******/ 			function getModuleExports() { return module; };
+            /******/ 		__webpack_require__.d(getter, 'a', getter);
+            /******/ 		return getter;
+            /******/ 	};
+        /******/
+        /******/ 	// Object.prototype.hasOwnProperty.call
+        /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+        /******/
+        /******/ 	// __webpack_public_path__
+        /******/ 	__webpack_require__.p = "";
+        /******/
+        /******/ 	// Load entry module and return exports
+        /******/ 	return __webpack_require__(__webpack_require__.s = 0);
+        /******/ })
+    /************************************************************************/
+    /******/ ([
+        /* 0 */
+        /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/*
- Version: 1.0.0
- Author: lemehovskiy
- Website: http://lemehovskiy.github.io
- Repo: https://github.com/lemehovskiy/scroller
- */
+            "use strict";
+            /*
+             Version: 1.0.0
+             Author: lemehovskiy
+             Website: http://lemehovskiy.github.io
+             Repo: https://github.com/lemehovskiy/scroller
+             */
 
 
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+            var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+            var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+            function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-(function ($) {
-    var Scroller = function () {
-        function Scroller(element, options) {
-            _classCallCheck(this, Scroller);
+            (function ($) {
+                var Scroller = function () {
+                    function Scroller(element, options) {
+                        _classCallCheck(this, Scroller);
 
-            var self = this;
+                        var self = this;
 
-            //extend by function call
-            this.settings = $.extend(true, {}, options);
-            this.$element = $(element);
+                        //extend by function call
+                        this.settings = $.extend(true, {}, options);
+                        this.$element = $(element);
 
-            //extend by data options
-            this.data_options = self.$element.data('scroller');
-            this.settings = $.extend(true, self.settings, self.data_options);
+                        //extend by data options
+                        this.data_options = self.$element.data('scroller');
+                        this.settings = $.extend(true, self.settings, self.data_options);
 
-            this.state = {
-                isVisible: false,
-                window: {
-                    width: window.innerWidth,
-                    height: window.innerHeight
-                },
-                viewport: {
-                    top: 0,
-                    bottom: 0
-                },
-                sectionOffset: {
-                    top: 0,
-                    bottom: 0
-                },
-                progress: {
-                    px: 0,
-                    percent: 0,
-                    length: 0
-                },
-                sectionHeight: 0
-            };
+                        this.state = {
+                            isVisible: false,
+                            window: {
+                                width: window.innerWidth,
+                                height: window.innerHeight
+                            },
+                            viewport: {
+                                top: 0,
+                                bottom: 0
+                            },
+                            sectionOffset: {
+                                top: 0,
+                                bottom: 0
+                            },
+                            progress: {
+                                px: 0,
+                                percent: 0,
+                                length: 0
+                            },
+                            sectionHeight: 0
+                        };
 
-            this.init();
-        }
+                        this.init();
+                    }
 
-        _createClass(Scroller, [{
-            key: 'init',
-            value: function init() {
-                var self = this;
+                    _createClass(Scroller, [{
+                        key: 'init',
+                        value: function init() {
+                            var self = this;
 
-                this.updateViewport();
-                self.onResize();
-                self.onResizeScroll();
+                            this.updateViewport();
+                            self.onResize();
+                            self.onResizeScroll();
 
-                $(window).on('scroll', function () {
-                    self.onScroll();
-                });
+                            $(window).on('scroll', function () {
+                                self.onScroll();
+                            });
 
-                $(window).on('resize', function () {
-                    self.onResize();
-                });
-                $(window).on('scroll resize', function () {
-                    self.onResizeScroll();
-                });
-            }
-        }, {
-            key: 'updateWindowSize',
-            value: function updateWindowSize() {
-                this.state.window.width = window.innerWidth;
-                this.state.window.height = window.innerHeight;
-            }
-        }, {
-            key: 'updateViewport',
-            value: function updateViewport() {
-                this.state.viewport.top = $(window).scrollTop();
-                this.state.viewport.bottom = this.state.viewport.top + this.state.window.height;
-            }
-        }, {
-            key: 'onScroll',
-            value: function onScroll() {
-                this.updateViewport();
-            }
-        }, {
-            key: 'onResize',
-            value: function onResize() {
-                this.updateWindowSize();
-                this.state.sectionHeight = this.$element.outerHeight();
-                this.state.sectionOffset.top = this.$element.offset().top;
-                this.state.sectionOffset.bottom = this.state.sectionOffset.top + this.state.sectionHeight;
-                this.state.progress.length = this.state.sectionHeight + this.state.window.height;
-            }
-        }, {
-            key: 'onResizeScroll',
-            value: function onResizeScroll() {
-                var isVisible = this.state.viewport.bottom > this.state.sectionOffset.top && this.state.viewport.top < this.state.sectionOffset.bottom;
+                            $(window).on('resize', function () {
+                                self.onResize();
+                            });
+                            $(window).on('scroll resize', function () {
+                                self.onResizeScroll();
+                            });
+                        }
+                    }, {
+                        key: 'updateWindowSize',
+                        value: function updateWindowSize() {
+                            this.state.window.width = window.innerWidth;
+                            this.state.window.height = window.innerHeight;
+                        }
+                    }, {
+                        key: 'updateViewport',
+                        value: function updateViewport() {
+                            this.state.viewport.top = $(window).scrollTop();
+                            this.state.viewport.bottom = this.state.viewport.top + this.state.window.height;
+                        }
+                    }, {
+                        key: 'onScroll',
+                        value: function onScroll() {
+                            this.updateViewport();
+                        }
+                    }, {
+                        key: 'onResize',
+                        value: function onResize() {
+                            this.updateWindowSize();
+                            this.state.sectionHeight = this.$element.outerHeight();
+                            this.state.sectionOffset.top = this.$element.offset().top;
+                            this.state.sectionOffset.bottom = this.state.sectionOffset.top + this.state.sectionHeight;
+                            this.state.progress.length = this.state.sectionHeight + this.state.window.height;
+                        }
+                    }, {
+                        key: 'onResizeScroll',
+                        value: function onResizeScroll() {
+                            var isVisible = this.state.viewport.bottom > this.state.sectionOffset.top && this.state.viewport.top < this.state.sectionOffset.bottom;
 
-                if (isVisible) {
-                    this.state.progress.px = this.state.viewport.bottom - this.state.sectionOffset.top;
-                    this.state.progress.percent = (this.state.progress.px / this.state.progress.length * 100).toFixed(2);
-                    this.$element.trigger('progress.scroller', this.state.progress.percent);
-                }
+                            if (isVisible) {
+                                this.state.progress.px = this.state.viewport.bottom - this.state.sectionOffset.top;
+                                this.state.progress.percent = parseInt((this.state.progress.px / this.state.progress.length * 100).toFixed(2));
+                                this.$element.trigger('progress.scroller', this.state.progress.percent);
+                            }
 
-                if (isVisible && !this.state.isVisible) {
-                    this.onVisible();
-                } else if (!isVisible && this.state.isVisible) {
-                    this.onHidden();
-                }
-            }
-        }, {
-            key: 'onVisible',
-            value: function onVisible() {
-                this.state.isVisible = true;
-                this.$element.trigger('visible.scroller', this.state.progress.percent);
-                this.$element.addClass('active');
-            }
-        }, {
-            key: 'onHidden',
-            value: function onHidden() {
-                this.state.isVisible = false;
-                this.$element.trigger('hidden.scroller', this.state.progress.percent);
-                this.$element.removeClass('active');
-            }
-        }]);
+                            if (isVisible && !this.state.isVisible) {
+                                this.onVisible();
+                            } else if (!isVisible && this.state.isVisible) {
+                                this.onHidden();
+                            }
+                        }
+                    }, {
+                        key: 'onVisible',
+                        value: function onVisible() {
+                            this.state.isVisible = true;
+                            this.$element.trigger('visible.scroller', this.state.progress.percent);
+                            this.$element.addClass('active');
+                        }
+                    }, {
+                        key: 'onHidden',
+                        value: function onHidden() {
+                            this.state.isVisible = false;
+                            this.$element.trigger('hidden.scroller', this.state.progress.percent);
+                            this.$element.removeClass('active');
+                        }
+                    }]);
 
-        return Scroller;
-    }();
+                    return Scroller;
+                }();
 
-    $.fn.scroller = function () {
-        var $this = this,
-            opt = arguments[0],
-            args = Array.prototype.slice.call(arguments, 1),
-            length = $this.length,
-            i = void 0,
-            ret = void 0;
-        for (i = 0; i < length; i++) {
-            if ((typeof opt === 'undefined' ? 'undefined' : _typeof(opt)) == 'object' || typeof opt == 'undefined') $this[i].scroller = new Scroller($this[i], opt);else ret = $this[i].scroller[opt].apply($this[i].scroller, args);
-            if (typeof ret != 'undefined') return ret;
-        }
-        return $this;
-    };
-})(jQuery);
+                $.fn.scroller = function () {
+                    var $this = this,
+                        opt = arguments[0],
+                        args = Array.prototype.slice.call(arguments, 1),
+                        length = $this.length,
+                        i = void 0,
+                        ret = void 0;
+                    for (i = 0; i < length; i++) {
+                        if ((typeof opt === 'undefined' ? 'undefined' : _typeof(opt)) == 'object' || typeof opt == 'undefined') $this[i].scroller = new Scroller($this[i], opt);else ret = $this[i].scroller[opt].apply($this[i].scroller, args);
+                        if (typeof ret != 'undefined') return ret;
+                    }
+                    return $this;
+                };
+            })(jQuery);
 
-/***/ })
-/******/ ]);
+            /***/ })
+        /******/ ]);
 });
 
 /***/ }),
